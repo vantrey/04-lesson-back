@@ -2,25 +2,21 @@ import {NextFunction, Request, Response} from 'express'
 import {body, validationResult} from 'express-validator'
 import {jwtUtility} from '../application/jwt-utility'
 import {usersService} from '../bll-domain/users-service'
+import {getErrorResponse} from '../helpers/getErrorResponse';
 
 export const inputValidationMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req)
+    const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        let newErrors = errors.array()
-        let countYoutubeUrl = 0
-        errors.array().forEach(e => e.param === 'youtubeUrl' && countYoutubeUrl++)
-        if (countYoutubeUrl > 1) {
-            newErrors = errors.array().filter((e) => !(e.param === 'youtubeUrl' && e.msg.includes('length 2-100 ')))
-        }
-        res.status(400).json({
-            resultCode: 1,
-            errorsMessages: newErrors.map((e) => ({
-                message: e.msg,
-                field: e.param
-            }))
-        })
+        const newErrors = errors.array({ onlyFirstError: true }).map((error) => ({
+            message: error.msg,
+            field: error.param,
+        }));
+
+        const errorResponse = getErrorResponse(newErrors);
+
+        res.status(400).json(errorResponse);
     } else {
-        next()
+        next();
     }
 }
 export const authValidationMiddleware = (req: Request, res: Response, next: NextFunction) => {

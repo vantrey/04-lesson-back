@@ -3,11 +3,12 @@ import {PostType} from './posts-repository'
 import {BloggerType} from './bloggers-repository'
 import {UserType} from './users-db-repository'
 import {CommentType} from './comments-db-repository'
+import {settings} from '../settings';
 
 // const mongoUri = process.env.mongoURI || "mongodb://0.0.0.0:27017";
-const mongoUri = 'mongodb+srv://admin:admin@express.knv2b.mongodb.net/express?retryWrites=true&w=majority'
+const mongoUri = settings.MONGO_URI;
 export const client = new MongoClient(mongoUri);
-const connection = client.db("express")
+const connection = client.db('lessons');
 
 export const posts = connection.collection<PostType>('posts')
 export const bloggers = connection.collection<BloggerType>('bloggers')

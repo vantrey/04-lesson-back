@@ -12,6 +12,7 @@ import {
 } from '../middlewares/input-validation-middleware'
 import {bloggersService} from '../bll-domain/bloggers-service'
 import {postService} from '../bll-domain/posts-service'
+import {getErrorResponse} from '../helpers/getErrorResponse';
 
 export const bloggersRouter = Router({})
 
@@ -59,10 +60,7 @@ bloggersRouter.post('/',basicAuth,
         if (blogger) {
             res.status(201).send(blogger)
         } else {
-            res.status(400).send({
-                resultCode: 1,
-                errorsMessages: [{message: 'blogger is not created', field: 'bloggerId'}]
-            })
+            res.status(400).send(getErrorResponse([{message: 'blogger is not created', field: 'bloggerId'}]))
         }
     })
 
@@ -86,10 +84,7 @@ bloggersRouter.post('/:bloggerId/posts',basicAuth,
             const post = await postService.createPost(title, shortDescription, content, bloggerId)
             res.status(201).send(post)
         } else {
-            res.status(400).send({
-                resultCode: 1,
-                errorsMessages: [{message: 'post is not created', field: 'postId'}]
-            })
+            res.status(400).send(getErrorResponse([{message: 'post is not created', field: 'postId'}]))
         }
     })
 

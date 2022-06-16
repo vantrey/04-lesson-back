@@ -14,6 +14,7 @@ import {
 import {postService} from '../bll-domain/posts-service'
 import {commentsRepository} from '../repositories/comments-db-repository'
 import {commentsService} from '../bll-domain/comments-service'
+import {getErrorResponse} from '../helpers/getErrorResponse';
 
 export const postsRouter = Router({})
 
@@ -34,20 +35,14 @@ postsRouter.post('/', basicAuth,
         const bloggerId = req.body.bloggerId
         const blogger = await bloggersRepository.findBloggerById(bloggerId)
         if (!blogger) {
-            res.status(400).send({
-                resultCode: 1,
-                errorsMessages: [{message: 'no blogger with this id', field: 'bloggerId'}]
-            })
+            res.status(400).send(getErrorResponse([{message: 'no blogger with this id', field: 'bloggerId'}]))
             return
         }
         const newPost = await postService.createPost(title, shortDescription, content, bloggerId)
         if (newPost) {
             res.status(201).send(newPost)
         } else {
-            res.status(400).send({
-                resultCode: 1,
-                errorsMessages: [{message: 'post is not created', field: 'bloggerId'}]
-            })
+            res.status(400).send(getErrorResponse([{message: 'post is not created', field: 'bloggerId'}]))
         }
     })
 
@@ -120,10 +115,7 @@ postsRouter.put('/:id', basicAuth,
 
         const blogger = await bloggersRepository.findBloggerById(bloggerId)
         if (!blogger) {
-            res.status(400).send({
-                resultCode: 1,
-                errorsMessages: [{message: 'blogger is not created', field: 'bloggerId'}]
-            })
+            res.status(400).send(getErrorResponse([{message: 'blogger is not created', field: 'bloggerId'}]))
             return
         }
         const isUpdated = await postService.updatePost(id, title, shortDescription, content, bloggerId, blogger.name)
