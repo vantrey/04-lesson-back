@@ -1,5 +1,5 @@
 import {posts} from './db'
-import {PostType} from './posts-repository'
+import {PostType} from '../types/postTypes';
 
 export const postRepository = {
     async getPosts(pageNumber:number, pageSize:number,) {

@@ -1,18 +1,7 @@
-import {bloggersRepository, BloggerType} from './bloggers-repository'
+import {bloggersRepository} from './bloggers-repository'
+import {PostType} from '../types/postTypes';
 
-
-export type PostType = {
-    id: string,
-    title: string,
-    shortDescription: string,
-    content: string,
-    bloggerId: BloggerType['id'],
-    bloggerName?: string
-}
 let posts: Array<PostType> = [
-    {id: '1', title: 'title1', shortDescription: 'shortDescription1', content: 'content1', bloggerId: '1'},
-    {id: '2', title: 'title2', shortDescription: 'shortDescription2', content: 'content1', bloggerId: '1'},
-    {id: '3', title: 'title3', shortDescription: 'shortDescription3', content: 'content1', bloggerId: '2'},
 ]
 export const postRepository ={
     async getPosts(){
@@ -30,6 +19,7 @@ export const postRepository ={
             shortDescription: descr,
             content,
             bloggerId,
+            addedAt: new Date()
         }
         posts.push(newPost)
         if (postsLength < posts.length) {

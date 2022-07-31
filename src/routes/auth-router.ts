@@ -12,6 +12,13 @@ authRouter.post('/login', loginValidation, passwordValidation, authValidationMid
     if (!result) {
         res.sendStatus(401)
         return
-    }else
-    res.status(200).send({token: result})
+    }
+
+    res.cookie('refreshToken', result, {
+        maxAge: 100000,
+        httpOnly: true,
+        secure: true,
+    });
+
+    res.status(200).send({accessToken: result})
 })

@@ -1,15 +1,18 @@
 import {MongoClient} from 'mongodb'
-import {PostType} from './posts-repository'
 import {BloggerType} from './bloggers-repository'
 import {UserType} from './users-db-repository'
 import {CommentType} from './comments-db-repository'
 import {settings} from '../settings';
+import {PostType} from '../types/postTypes';
+import {IRepositoryLike} from '../types/likeTypes';
 
 // const mongoUri = process.env.mongoURI || "mongodb://0.0.0.0:27017";
 const mongoUri = settings.MONGO_URI;
 export const client = new MongoClient(mongoUri);
 const connection = client.db('lessons');
 
+export const likesCollection = connection.collection<IRepositoryLike>('likes')
+export const dislikeCollection = connection.collection<IRepositoryLike>('dislikes')
 export const posts = connection.collection<PostType>('posts')
 export const bloggers = connection.collection<BloggerType>('bloggers')
 export const users = connection.collection<UserType>('users')

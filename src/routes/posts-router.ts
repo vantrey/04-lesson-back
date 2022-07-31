@@ -15,14 +15,22 @@ import {postService} from '../bll-domain/posts-service'
 import {commentsRepository} from '../repositories/comments-db-repository'
 import {commentsService} from '../bll-domain/comments-service'
 import {getErrorResponse} from '../helpers/getErrorResponse';
+import * as QueryString from 'querystring';
+import {likesService} from '../bll-domain/likes-service';
 
 export const postsRouter = Router({})
 
-postsRouter.get('/', async (req: Request, res: Response) => {
+postsRouter.get('/', bearerAuth, async (req: Request, res: Response) => {
     const params = getQueryPaginationFromQueryString(req)
-    const posts = await postService.getPosts(params.pageNumber, params.pageSize)
+    const user = req.user
+    const posts = await postService.getPosts(params.pageNumber, params.pageSize, user?._id)
+
+
+    console.log('GET_POSTS__ ',posts)
+
     res.status(200).send(posts)
 })
+
 postsRouter.post('/', basicAuth,
     titleValidation,
     shortDescriptionValidation,
@@ -46,31 +54,67 @@ postsRouter.post('/', basicAuth,
         }
     })
 
+postsRouter.put('/:postId/like-status', bearerAuth,
+    inputValidationMiddleware, async (req: Request, res: Response) => {
+        const postId = req.params.postId
+        const likeStatus = req.body.likeStatus
+        console.log('LIKE_REQ = ', likeStatus)
+        if (postId === undefined) {
+            res.sendStatus(404)
+            return
+        }
+
+        const post = await postService.getPostById(postId.toString())
+
+        if (!post) {
+            res.sendStatus(404)
+            return
+        }
+
+        if (!req.user) {
+            return res.status(500).send('NO USER')
+        }
+
+        const isLikeStatusUpdated = await postService.updateLikeStatus(postId, req.user, likeStatus)
+
+        if (!isLikeStatusUpdated) {
+            return res.status(500).send('SWW')
+        }
+
+        return res.sendStatus(204)
+    })
+
 postsRouter.post('/:postId/comments', bearerAuth, commentContentValidation,
     inputValidationMiddleware, async (req: Request, res: Response) => {
         const postId = req.params.postId
-        if(postId === undefined){
+        if (postId === undefined) {
             res.sendStatus(404)
             return
         }
         const post = await postService.getPostById(postId.toString())
-        if(!post){
+        if (!post) {
             res.sendStatus(404)
             return
         }
         const content = req.body.content
         const comment = await commentsRepository.createComment(content, req.user!, postId)
-        res.status(201).send({id: comment.id, content: comment.content, userId: comment.userId, userLogin: comment.userLogin, addedAt: comment.addedAt})
+        res.status(201).send({
+            id: comment.id,
+            content: comment.content,
+            userId: comment.userId,
+            userLogin: comment.userLogin,
+            addedAt: comment.addedAt
+        })
     })
 postsRouter.get('/:postId/comments', async (req: Request, res: Response) => {
     const params = getQueryPaginationFromQueryString(req)
     const postId = req.params.postId
-    if(postId === undefined){
+    if (postId === undefined) {
         res.sendStatus(404)
         return
     }
     const post = await postService.getPostById(postId.toString())
-    if(!post){
+    if (!post) {
         res.sendStatus(404)
         return
     }
@@ -84,13 +128,17 @@ postsRouter.get('/:postId/comments', async (req: Request, res: Response) => {
         items: comments
     })
 })
-postsRouter.get('/:id', async (req: Request, res: Response) => {
+postsRouter.get('/:id', bearerAuth, async (req: Request, res: Response) => {
     const id = req.params.id
     if (!id) {
         res.sendStatus(400)
         return
     }
-    const post = await postService.getPostById(id)
+    console.log('REQ_POST_BY_ID')
+    const user = req.user
+
+    const post = await postService.getPostById(id, user?._id.toString())
+    console.log(post)
     if (post) {
         res.send(post)
     } else {
