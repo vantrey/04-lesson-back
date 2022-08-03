@@ -31,7 +31,7 @@ export const usersService = {
     async getUserBy_id (_id:ObjectId): Promise<UserType | null> {
         return  usersRepository.getUserBy_Id(_id)
     },
-    async findByCredentials(login: string, password: string): Promise<UserType | null>{
+    async findByCredentials(login: string, password: string): Promise<UserType | null> {
        const user = await usersRepository.findUserByLogin(login)
         if(!user) return null
         const isHashesEquals = await this.isPasswordCorrect(password, user.passwordHash)

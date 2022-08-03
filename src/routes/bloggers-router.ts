@@ -1,6 +1,6 @@
 import {Request, Response, Router} from 'express'
 import {
-    basicAuth,
+    basicAuth, bearerAuth,
     contentValidation,
     getQueryPaginationFromQueryString,
     inputValidationMiddleware,
@@ -36,19 +36,24 @@ bloggersRouter.get('/:id', async (req: Request, res: Response) => {
     }
 
 })
-bloggersRouter.get('/:bloggerId/posts', async (req: Request, res: Response) => {
+bloggersRouter.get('/:bloggerId/posts', bearerAuth, async (req: Request, res: Response) => {
     const bloggerId = req.params.bloggerId
     const params = getQueryPaginationFromQueryString(req)
     const blogger = await bloggersService.findBloggerById(bloggerId)
-    if(!blogger){
+    if (!blogger) {
         res.sendStatus(404)
         return
     }
-    const postsByBloggerId = await postService.getPostsByBloggerId(params.pageNumber,params.pageSize, bloggerId)
+    const postsByBloggerId = await postService.getPostsByBloggerId(
+        params.pageNumber,
+        params.pageSize,
+        bloggerId,
+        req.user?._id
+    )
     res.status(200).send(postsByBloggerId)
 })
 
-bloggersRouter.post('/',basicAuth,
+bloggersRouter.post('/', basicAuth,
     nameValueValidation,
     youtubeUrlValidation1,
     youtubeUrlValidation2,
@@ -64,7 +69,7 @@ bloggersRouter.post('/',basicAuth,
         }
     })
 
-bloggersRouter.post('/:bloggerId/posts',basicAuth,
+bloggersRouter.post('/:bloggerId/posts', basicAuth,
     titleValidation,
     shortDescriptionValidation,
     contentValidation,
@@ -75,7 +80,7 @@ bloggersRouter.post('/:bloggerId/posts',basicAuth,
         const content = req.body.content
 
         const blogger = await bloggersService.findBloggerById(bloggerId)
-        if(!blogger){
+        if (!blogger) {
             res.sendStatus(404)
             return
         }
@@ -88,7 +93,7 @@ bloggersRouter.post('/:bloggerId/posts',basicAuth,
         }
     })
 
-bloggersRouter.put('/:id',basicAuth,
+bloggersRouter.put('/:id', basicAuth,
     nameValueValidation,
     youtubeUrlValidation1,
     youtubeUrlValidation2,

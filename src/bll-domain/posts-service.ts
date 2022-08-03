@@ -8,7 +8,6 @@ import {UserType} from '../repositories/users-db-repository';
 
 export const postService = {
     async getPosts(pageNumber: number, pageSize: number, userId?: ObjectId) {
-        console.log('USERID111111111111111111111', userId)
         const foundPosts = await postRepository.getPosts(pageNumber, pageSize)
         const allPostsCount = await postRepository.getAllPostsCount()
 
@@ -42,7 +41,7 @@ export const postService = {
                     (like) => like.userId.toString() === userId.toString()
                 )?.status
 
-                myStatus = LikeStatus.None || myStatusLike || myStatusDislike
+                myStatus = myStatusLike || myStatusDislike || LikeStatus.None
             }
 
             return {
@@ -66,15 +65,61 @@ export const postService = {
             items: postsWithLikes
         }
     },
-    async getPostsByBloggerId(pageNumber: number, pageSize: number, bloggerId: string): Promise<any> {
+    async getPostsByBloggerId(pageNumber: number, pageSize: number, bloggerId: string, userId?: ObjectId): Promise<any> {
         const allPostsByBloggerId = await postRepository.getAllPostsByBloggerId(bloggerId)
         const foundPosts = await postRepository.getPostsByBloggerId(pageNumber, pageSize, bloggerId)
+        const postsIds = foundPosts.map((post: any) => new ObjectId(post.id))
+
+        const likesByPosts = await likesService.getLikesDislikesByParents(postsIds);
+
+        console.log('likesByPosts = ', likesByPosts)
+
+        const postsWithLikes: IPostWithLikes[] = foundPosts.map((post: any) => {
+            const accordingLikes = likesByPosts.filter((like) =>
+                (like.status === LikeStatus.Like) && (like.parentId.toString() === post.id)).reverse()
+
+            const accordingDislikes = likesByPosts.filter((like) =>
+                (like.status === LikeStatus.Dislike) && (like.parentId.toString() === post.id))
+
+            const newestLikes: INewestLike[] = accordingLikes.slice(0, 3).map((like) => ({
+                addedAt: like.addedAt,
+                userId: like.userId.toString(),
+                login: like.login,
+            }))
+
+            let myStatus = LikeStatus.None
+
+            if (userId) {
+                const myStatusLike = accordingLikes.find(
+                    (like) => like.userId.toString() === userId.toString()
+                )?.status
+
+                const myStatusDislike = accordingDislikes.find(
+                    (like) => like.userId.toString() === userId.toString()
+                )?.status
+
+                myStatus = myStatusLike || myStatusDislike || LikeStatus.None
+            }
+
+            return {
+                ...post,
+                extendedLikesInfo: {
+                    likesCount: accordingLikes.length,
+                    dislikesCount: accordingDislikes.length,
+                    myStatus,
+                    newestLikes
+                }
+            }
+        })
+
+        console.log('postsWithLikes', postsWithLikes)
+
         return {
             pagesCount: Math.ceil(allPostsByBloggerId.length / pageSize),
             page: pageNumber,
             pageSize: pageSize,
             totalCount: allPostsByBloggerId.length,
-            items: foundPosts
+            items: postsWithLikes
         }
 
     },

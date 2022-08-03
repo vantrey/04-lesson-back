@@ -70,6 +70,21 @@ export let bearerAuth = async (req: Request, res: Response, next: NextFunction) 
     }
 }
 
+export let checkAuth = async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.headers.authorization) {
+        next()
+        return
+    }
+    const token = req.headers.authorization.split(' ')[1] //deleted Bearer
+    const userId = await jwtUtility.extractUserIdFromToken(token)
+    if (userId) {
+        const user = await usersService.getUserBy_id(userId)
+        if (user) {
+            req.user = user
+        }
+    }
+        next()
+}
 
 export const getQueryPaginationFromQueryString = (req: Request) => {
     const pageNumber = req.query.PageNumber && typeof (req.query.PageNumber) === 'string' && (isFinite(parseInt(req.query.PageNumber))) ? parseInt(req.query.PageNumber) : 1

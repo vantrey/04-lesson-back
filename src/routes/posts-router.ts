@@ -3,7 +3,7 @@ import {bloggersRepository} from '../repositories/bloggers-db-repository'
 import {
     basicAuth,
     bearerAuth,
-    bloggerIdValidation,
+    bloggerIdValidation, checkAuth,
     commentContentValidation,
     contentValidation,
     getQueryPaginationFromQueryString,
@@ -20,7 +20,7 @@ import {likesService} from '../bll-domain/likes-service';
 
 export const postsRouter = Router({})
 
-postsRouter.get('/', bearerAuth, async (req: Request, res: Response) => {
+postsRouter.get('/', checkAuth, async (req: Request, res: Response) => {
     const params = getQueryPaginationFromQueryString(req)
     const user = req.user
     const posts = await postService.getPosts(params.pageNumber, params.pageSize, user?._id)
@@ -128,7 +128,7 @@ postsRouter.get('/:postId/comments', async (req: Request, res: Response) => {
         items: comments
     })
 })
-postsRouter.get('/:id', bearerAuth, async (req: Request, res: Response) => {
+postsRouter.get('/:id', checkAuth, async (req: Request, res: Response) => {
     const id = req.params.id
     if (!id) {
         res.sendStatus(400)
