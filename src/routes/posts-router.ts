@@ -17,6 +17,7 @@ import {commentsService} from '../bll-domain/comments-service'
 import {getErrorResponse} from '../helpers/getErrorResponse';
 import * as QueryString from 'querystring';
 import {likesService} from '../bll-domain/likes-service';
+import {IPostWithLikes} from '../types/postTypes';
 
 export const postsRouter = Router({})
 
@@ -48,7 +49,7 @@ postsRouter.post('/', basicAuth,
         }
         const newPost = await postService.createPost(title, shortDescription, content, bloggerId)
         if (newPost) {
-            res.status(201).send(newPost)
+            res.status(201).send({...newPost, extendedLikesInfo: []})
         } else {
             res.status(400).send(getErrorResponse([{message: 'post is not created', field: 'bloggerId'}]))
         }
