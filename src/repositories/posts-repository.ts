@@ -1,4 +1,4 @@
-import {bloggersRepository} from './bloggers-repository'
+import {blogRepository} from './blog-repository'
 import {PostType} from '../types/postTypes';
 
 let posts: Array<PostType> = [
@@ -6,42 +6,42 @@ let posts: Array<PostType> = [
 export const postRepository ={
     async getPosts(){
         const newPosts = posts.map(p => {
-           let bloggerName =  bloggersRepository.findBloggerById(p.bloggerId)?.name
-            return {...p, bloggerName}
+           let blogName =  blogRepository.findblogById(p.blogId)?.name
+            return {...p, blogName}
         })
        return newPosts
     },
-    async createPost(title:string, descr: string, content: string, bloggerId: string){
+    async createPost(title:string, descr: string, content: string, blogId: string){
         const postsLength = posts.length
         const newPost: PostType = {
             id: new Date().getTime().toString(),
             title,
             shortDescription: descr,
             content,
-            bloggerId,
-            addedAt: new Date()
+            blogId,
+            createdAt: new Date().toISOString()
         }
         posts.push(newPost)
         if (postsLength < posts.length) {
-            const blogger = await bloggersRepository.findBloggerById(newPost.bloggerId)
-            return {...newPost, bloggerName: blogger?.name}
+            const blog = await blogRepository.findblogById(newPost.blogId)
+            return {...newPost, blogName: blog?.name}
         } else return null
     },
     async getPostById(id:string){
         const post = posts.find(p => p.id === id)
         if (post) {
-            const blogger = await bloggersRepository.findBloggerById(post.bloggerId)
-            if(blogger){
-                return {...post, bloggerName: blogger?.name}
+            const blog = await blogRepository.findblogById(post.blogId)
+            if(blog){
+                return {...post, blogName: blog?.name}
             } else return null
         } else return null
     },
-    async updatePost(id:string,title:string, descr: string, content: string, bloggerId: string){
+    async updatePost(id:string,title:string, descr: string, content: string, blogId: string){
         const post = posts.find(p => p.id === id)
         if (post) {
             posts = posts.map(p => {
                 if (p.id === id) {
-                    return {...p, title, bloggerId, content, shortDescription:descr}
+                    return {...p, title, blogId, content, shortDescription:descr}
                 } else return p
             })
             return true

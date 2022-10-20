@@ -4,7 +4,8 @@ export type UserType = WithId<{
     id: string,
     login: string
     passwordHash: string
-    email?:string
+    email:string
+    createdAt: string
 }>
 
 export const usersRepository = {
@@ -17,11 +18,13 @@ export const usersRepository = {
     async findUserByLogin(login: string): Promise<UserType | null>{
         return users.findOne({login})
     },
-    async createUser(user: UserType): Promise<{ id: string, login:string}>{
+    async createUser(user: UserType): Promise<{ id: string, login:string, email: string, createdAt: string}>{
         await users.insertOne(user)
         return {
             id: user._id.toString(),
             login: user.login,
+            email: user.email,
+            createdAt: user.createdAt
         }
     },
     async deleteUser(id: string): Promise<boolean>{

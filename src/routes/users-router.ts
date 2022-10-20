@@ -22,7 +22,7 @@ usersRouter.post('/', basicAuth,  loginValidation, passwordValidation,  inputVal
         res.sendStatus(400)
         return
     }
-    const user = await usersService.createUser(login, password, email)
+    const user = await usersService.createUser(login, password, email, new Date().toISOString())
     res.status(201).send(user)
 })
 usersRouter.delete('/:id', basicAuth, async (req: Request, res: Response)=>{

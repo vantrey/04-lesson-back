@@ -1,5 +1,5 @@
 import {postRepository} from '../repositories/posts-db-repository'
-import {bloggersRepository} from '../repositories/bloggers-db-repository'
+import {blogsRepository} from '../repositories/blog-db-repository'
 import {IPostWithLikes, PostType} from '../types/postTypes';
 import {INewestLike, LikeStatus} from '../types/likeTypes';
 import {likesService} from './likes-service';
@@ -65,9 +65,9 @@ export const postService = {
             items: postsWithLikes
         }
     },
-    async getPostsByBloggerId(pageNumber: number, pageSize: number, bloggerId: string, userId?: ObjectId): Promise<any> {
-        const allPostsByBloggerId = await postRepository.getAllPostsByBloggerId(bloggerId)
-        const foundPosts = await postRepository.getPostsByBloggerId(pageNumber, pageSize, bloggerId)
+    async getPostsByblogId(pageNumber: number, pageSize: number, blogId: string, userId?: ObjectId): Promise<any> {
+        const allPostsByblogId = await postRepository.getAllPostsByblogId(blogId)
+        const foundPosts = await postRepository.getPostsByblogId(pageNumber, pageSize, blogId)
         const postsIds = foundPosts.map((post: any) => new ObjectId(post.id))
 
         const likesByPosts = await likesService.getLikesDislikesByParents(postsIds);
@@ -115,27 +115,27 @@ export const postService = {
         console.log('postsWithLikes', postsWithLikes)
 
         return {
-            pagesCount: Math.ceil(allPostsByBloggerId.length / pageSize),
+            pagesCount: Math.ceil(allPostsByblogId.length / pageSize),
             page: pageNumber,
             pageSize: pageSize,
-            totalCount: allPostsByBloggerId.length,
+            totalCount: allPostsByblogId.length,
             items: postsWithLikes
         }
 
     },
-    async getAllPostsByBloggerId(bloggerId: string): Promise<PostType[]> {
-        return await postRepository.getAllPostsByBloggerId(bloggerId)
+    async getAllPostsByblogId(blogId: string): Promise<PostType[]> {
+        return await postRepository.getAllPostsByblogId(blogId)
     },
-    async createPost(title: string, descr: string, content: string, bloggerId: string): Promise<IPostWithLikes | null> {
-        const blogger = await bloggersRepository.findBloggerById(bloggerId)
+    async createPost(title: string, descr: string, content: string, blogId: string): Promise<IPostWithLikes | null> {
+        const blog = await blogsRepository.findblogById(blogId)
         const newPost: PostType = {
             id: new ObjectId().toString(),
-            addedAt: new Date(),
+            createdAt: new Date().toISOString(),
             title,
             shortDescription: descr,
             content,
-            bloggerId,
-            bloggerName: blogger?.name
+            blogId,
+            blogName: blog?.name
         }
 
         const createdPost: PostType | null = await postRepository.createPost(newPost)
@@ -211,12 +211,12 @@ export const postService = {
         }
     },
 
-    async updatePost(id: string, title: string, descr: string, content: string, bloggerId: string, bloggerName: string) {
+    async updatePost(id: string, title: string, descr: string, content: string, blogId: string, blogName: string) {
         const post = await postRepository.getPostById(id)
         if (!post) {
             return false
         }
-        return await postRepository.updatePost(id, title, descr, content, bloggerId, bloggerName)
+        return await postRepository.updatePost(id, title, descr, content, blogId, blogName)
     },
 
     async deletePost(id: string) {

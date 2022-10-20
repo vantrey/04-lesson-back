@@ -1,9 +1,9 @@
 import {Request, Response, Router} from 'express'
-import {bloggersRepository} from '../repositories/bloggers-db-repository'
+import {blogsRepository} from '../repositories/blog-db-repository'
 import {
     basicAuth,
     bearerAuth,
-    bloggerIdValidation, checkAuth,
+    blogIdValidation, checkAuth,
     commentContentValidation,
     contentValidation,
     getQueryPaginationFromQueryString,
@@ -18,6 +18,7 @@ import {getErrorResponse} from '../helpers/getErrorResponse';
 import * as QueryString from 'querystring';
 import {likesService} from '../bll-domain/likes-service';
 import {IPostWithLikes} from '../types/postTypes';
+import {body} from 'express-validator';
 
 export const postsRouter = Router({})
 
@@ -36,26 +37,32 @@ postsRouter.post('/', basicAuth,
     titleValidation,
     shortDescriptionValidation,
     contentValidation,
-    bloggerIdValidation,
+    blogIdValidation,
     inputValidationMiddleware, async (req: Request, res: Response) => {
         const title = req.body.title
         const shortDescription = req.body.shortDescription
         const content = req.body.content
-        const bloggerId = req.body.bloggerId
-        const blogger = await bloggersRepository.findBloggerById(bloggerId)
-        if (!blogger) {
-            res.status(400).send(getErrorResponse([{message: 'no blogger with this id', field: 'bloggerId'}]))
+        const blogId = req.body.blogId
+        const blog = await blogsRepository.findblogById(blogId)
+        if (!blog) {
+            res.status(400).send(getErrorResponse([{message: 'no blog with this id', field: 'blogId'}]))
             return
         }
-        const newPost = await postService.createPost(title, shortDescription, content, bloggerId)
+        const newPost = await postService.createPost(title, shortDescription, content, blogId)
         if (newPost) {
-            res.status(201).send({...newPost, extendedLikesInfo: []})
+            res.status(201).send({...newPost, extendedLikesInfo: {
+                    "likesCount": 0,
+                    "dislikesCount": 0,
+                    "myStatus": "None",
+                    "newestLikes": []
+                }})
         } else {
-            res.status(400).send(getErrorResponse([{message: 'post is not created', field: 'bloggerId'}]))
+            res.status(400).send(getErrorResponse([{message: 'post is not created', field: 'blogId'}]))
         }
     })
 
 postsRouter.put('/:postId/like-status', bearerAuth,
+    body('likeStatus').matches(/^Like$|^Dislike$|^None$/),
     inputValidationMiddleware, async (req: Request, res: Response) => {
         const postId = req.params.postId
         const likeStatus = req.body.likeStatus
@@ -150,7 +157,7 @@ postsRouter.put('/:id', basicAuth,
     titleValidation,
     shortDescriptionValidation,
     contentValidation,
-    bloggerIdValidation,
+    blogIdValidation,
     inputValidationMiddleware, async (req: Request, res: Response) => {
         const id = req.params.id
         if (!id) {
@@ -160,14 +167,14 @@ postsRouter.put('/:id', basicAuth,
         const title = req.body.title
         const shortDescription = req.body.shortDescription
         const content = req.body.content
-        const bloggerId = req.body.bloggerId
+        const blogId = req.body.blogId
 
-        const blogger = await bloggersRepository.findBloggerById(bloggerId)
-        if (!blogger) {
-            res.status(400).send(getErrorResponse([{message: 'blogger is not created', field: 'bloggerId'}]))
+        const blog = await blogsRepository.findblogById(blogId)
+        if (!blog) {
+            res.status(400).send(getErrorResponse([{message: 'blog is not created', field: 'blogId'}]))
             return
         }
-        const isUpdated = await postService.updatePost(id, title, shortDescription, content, bloggerId, blogger.name)
+        const isUpdated = await postService.updatePost(id, title, shortDescription, content, blogId, blog.name)
         if (isUpdated) {
             res.sendStatus(204)
         } else res.sendStatus(404)

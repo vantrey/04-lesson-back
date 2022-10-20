@@ -3,16 +3,25 @@ import {PostType} from '../types/postTypes';
 
 export const postRepository = {
     async getPosts(pageNumber:number, pageSize:number,) {
-        return posts.find({}, {projection:{_id:0}}).skip(pageSize*(pageNumber-1)).limit(pageSize).toArray()
+        return posts.find({},
+            {projection:{_id:0}})
+            .sort({createdAt: -1})
+            .skip(pageSize*(pageNumber-1))
+            .limit(pageSize)
+            .toArray()
     },
     async getAllPostsCount(): Promise<number> {
         return posts.countDocuments()
     },
-    async getPostsByBloggerId(pageNumber:number, pageSize:number,bloggerId: string): Promise<any> {
-        return posts.find({bloggerId}, {projection:{_id:0}}).skip(pageSize*(pageNumber-1)).limit(pageSize).toArray()
+    async getPostsByblogId(pageNumber:number, pageSize:number,blogId: string): Promise<any> {
+        return posts.find({blogId}, {projection:{_id:0}})
+            .skip(pageSize*(pageNumber-1))
+            .limit(pageSize)
+            .sort({createdAt: -1})
+            .toArray()
     },
-    async getAllPostsByBloggerId(bloggerId: string): Promise<PostType[]> {
-        return posts.find({bloggerId}, {projection:{_id:0}}).toArray()
+    async getAllPostsByblogId(blogId: string): Promise<PostType[]> {
+        return posts.find({blogId}, {projection:{_id:0}}).toArray()
     },
     async createPost(newPost: PostType) {
         const created = await posts.insertOne(newPost,{forceServerObjectId:true})
@@ -27,18 +36,18 @@ export const postRepository = {
         } else return null
     },
 
-    async updatePost(id: string, title: string, descr: string, content: string, bloggerId: string, bloggerName: string) {
+    async updatePost(id: string, title: string, descr: string, content: string, blogId: string, blogName: string) {
         await posts.findOneAndUpdate(
             {id},
-            {$set: {title, shortDescription: descr, content, bloggerId, bloggerName}},
+            {$set: {title, shortDescription: descr, content, blogId, blogName}},
             {upsert: true}
         )
         return true
     },
-    async updatePosts(bloggerId: string, bloggerName: string) {
+    async updatePosts(blogId: string, blogName: string) {
         await posts.updateMany(
-            {bloggerId},
-            {$set: {bloggerName}},
+            {blogId},
+            {$set: {blogName}},
             {upsert: true}
         )
         return true
@@ -47,7 +56,7 @@ export const postRepository = {
     async deletePost(id: string) {
        return posts.findOneAndDelete({id})
     },
-    async deletePosts(bloggerId: string) {
-        await posts.deleteMany({bloggerId})
+    async deletePosts(blogId: string) {
+        await posts.deleteMany({blogId})
     }
 }

@@ -10,90 +10,90 @@ import {
     youtubeUrlValidation1,
     youtubeUrlValidation2
 } from '../middlewares/input-validation-middleware'
-import {bloggersService} from '../bll-domain/bloggers-service'
+import {blogService} from '../bll-domain/blog-service'
 import {postService} from '../bll-domain/posts-service'
 import {getErrorResponse} from '../helpers/getErrorResponse';
 
-export const bloggersRouter = Router({})
+export const blogRouter = Router({})
 
-bloggersRouter.get('/', async (req: Request, res: Response) => {
+blogRouter.get('/', async (req: Request, res: Response) => {
     const searchName = req.query.SearchNameTerm?.toString()
     const params = getQueryPaginationFromQueryString(req)
-    const bloggers = await bloggersService.findBloggers(params.pageNumber, params.pageSize, searchName)
-    res.status(200).send(bloggers)
+    const blogs = await blogService.findblogs(params.pageNumber, params.pageSize, searchName)
+    res.status(200).send(blogs)
 })
-bloggersRouter.get('/:id', async (req: Request, res: Response) => {
+blogRouter.get('/:id', async (req: Request, res: Response) => {
     const id = req.params.id
     if (!id) {
         res.sendStatus(400)
         return
     }
-    const blogger = await bloggersService.findBloggerById(id)
-    if (blogger) {
-        res.send(blogger)
+    const blog = await blogService.findblogById(id)
+    if (blog) {
+        res.send(blog)
     } else {
         res.sendStatus(404)
     }
 
 })
-bloggersRouter.get('/:bloggerId/posts', bearerAuth, async (req: Request, res: Response) => {
-    const bloggerId = req.params.bloggerId
+blogRouter.get('/:blogId/posts', bearerAuth, async (req: Request, res: Response) => {
+    const blogId = req.params.blogId
     const params = getQueryPaginationFromQueryString(req)
-    const blogger = await bloggersService.findBloggerById(bloggerId)
-    if (!blogger) {
+    const blog = await blogService.findblogById(blogId)
+    if (!blog) {
         res.sendStatus(404)
         return
     }
-    const postsByBloggerId = await postService.getPostsByBloggerId(
+    const postsByblogId = await postService.getPostsByblogId(
         params.pageNumber,
         params.pageSize,
-        bloggerId,
+        blogId,
         req.user?._id
     )
-    res.status(200).send(postsByBloggerId)
+    res.status(200).send(postsByblogId)
 })
 
-bloggersRouter.post('/', basicAuth,
+blogRouter.post('/', basicAuth,
     nameValueValidation,
     youtubeUrlValidation1,
     youtubeUrlValidation2,
     inputValidationMiddleware, async (req: Request, res: Response) => {
         const name = req.body.name
         const youtubeUrl = req.body.youtubeUrl
-        const blogger = await bloggersService.createBlogger(name, youtubeUrl)
+        const blog = await blogService.createblog(name, youtubeUrl)
 
-        if (blogger) {
-            res.status(201).send(blogger)
+        if (blog) {
+            res.status(201).send(blog)
         } else {
-            res.status(400).send(getErrorResponse([{message: 'blogger is not created', field: 'bloggerId'}]))
+            res.status(400).send(getErrorResponse([{message: 'blog is not created', field: 'blogId'}]))
         }
     })
 
-bloggersRouter.post('/:bloggerId/posts', basicAuth,
+blogRouter.post('/:blogId/posts', basicAuth,
     titleValidation,
     shortDescriptionValidation,
     contentValidation,
     inputValidationMiddleware, async (req: Request, res: Response) => {
-        const bloggerId = req.params.bloggerId
+        const blogId = req.params.blogId
         const title = req.body.title
         const shortDescription = req.body.shortDescription
         const content = req.body.content
 
-        const blogger = await bloggersService.findBloggerById(bloggerId)
-        if (!blogger) {
+        const blog = await blogService.findblogById(blogId)
+        if (!blog) {
             res.sendStatus(404)
             return
         }
 
-        if (blogger) {
-            const post = await postService.createPost(title, shortDescription, content, bloggerId)
+        if (blog) {
+            const post = await postService.createPost(title, shortDescription, content, blogId)
             res.status(201).send(post)
         } else {
             res.status(400).send(getErrorResponse([{message: 'post is not created', field: 'postId'}]))
         }
     })
 
-bloggersRouter.put('/:id', basicAuth,
+blogRouter.put('/:id', basicAuth,
     nameValueValidation,
     youtubeUrlValidation1,
     youtubeUrlValidation2,
@@ -106,19 +106,19 @@ bloggersRouter.put('/:id', basicAuth,
         const name = req.body.name
         const youtubeUrl = req.body.youtubeUrl
 
-        const isUpdated = await bloggersService.updateBlogger(id, name, youtubeUrl)
+        const isUpdated = await blogService.updateblog(id, name, youtubeUrl)
         if (isUpdated) {
             res.sendStatus(204)
         } else res.sendStatus(404)
     })
 
-bloggersRouter.delete('/:id', basicAuth, async (req: Request, res: Response) => {
+blogRouter.delete('/:id', basicAuth, async (req: Request, res: Response) => {
     const id = req.params.id
     if (!id) {
         res.sendStatus(400)
         return
     }
-    const isDeleted = await bloggersService.deleteBlogger(id)
+    const isDeleted = await blogService.deleteblog(id)
     if (isDeleted) {
         res.sendStatus(204)
     } else res.sendStatus(404)

@@ -14,14 +14,15 @@ export const usersService = {
             items: users
         }
     },
-    async createUser (login: string, password: string, email?: string) {
+    async createUser (login: string, password: string, email: string, createdAt: string) {
         const passwordHash = await this.generateHash(password)
         const user = {
             _id: new ObjectId(),
             id: new Date().getTime().toString(),
             login,
             passwordHash,
-            ...(email && {email})
+            email,
+            createdAt
         }
       return usersRepository.createUser(user)
     },

@@ -1,5 +1,5 @@
 import {MongoClient} from 'mongodb'
-import {BloggerType} from './bloggers-repository'
+import {blogType} from './blog-repository'
 import {UserType} from './users-db-repository'
 import {CommentType} from './comments-db-repository'
 import {settings} from '../settings';
@@ -14,7 +14,7 @@ const connection = client.db('lessons');
 export const likesCollection = connection.collection<IRepositoryLike>('likes')
 export const dislikeCollection = connection.collection<IRepositoryLike>('dislikes')
 export const posts = connection.collection<PostType>('posts')
-export const bloggers = connection.collection<BloggerType>('bloggers')
+export const blogs = connection.collection<blogType>('blogs')
 export const users = connection.collection<UserType>('users')
 export const comments = connection.collection<CommentType>('comments')
 

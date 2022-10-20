@@ -106,8 +106,8 @@ export const shortDescriptionValidation = body('shortDescription').trim().isLeng
     .withMessage('shortDescription is required and its Klength should be 2-100 symbols')
 export const contentValidation = body('content').trim().isLength({min: 2, max: 1000})
     .withMessage('content is required and its length should be 2-100 symbols')
-export const bloggerIdValidation = body('bloggerId').isNumeric()
-    .withMessage('bloggerId is required and its number')
+export const blogIdValidation = body('blogId').isNumeric()
+    .withMessage('blogId is required and its number')
 
 export const loginValidation = body('login').trim().isLength({min: 3, max: 10})
     .withMessage('login is required and its length should be 3-10 symbols')

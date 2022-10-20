@@ -1,4 +1,4 @@
-import {BloggerType} from '../repositories/bloggers-repository';
+import {blogType} from '../repositories/blog-repository';
 import {IExpectedLikeInfo} from './likeTypes';
 
 export interface IPostWithLikes extends PostType {
@@ -6,11 +6,11 @@ export interface IPostWithLikes extends PostType {
 }
 
 export type PostType = {
-    addedAt: Date,
+    createdAt: string,
     id: string,
     title: string,
     shortDescription: string,
     content: string,
-    bloggerId: BloggerType['id'],
-    bloggerName?: string
+    blogId: blogType['id'],
+    blogName?: string
 }
